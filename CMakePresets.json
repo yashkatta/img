@@ -1,0 +1,59 @@
+{
+    "version": 6,
+    "configurePresets": [
+      {
+        "name": "Debug",
+        "description": "Debug setting for project",
+        "hidden": false,
+        "generator": "Unix Makefiles",
+        "binaryDir": "${workspaceFolder}/build/debug",
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_EXPORT_COMPILE_COMMANDS": "YES"
+        }
+      },
+      {
+        "name": "Release",
+        "description": "Release setting for project",
+        "hidden": false,
+        "generator": "Unix Makefiles",
+        "binaryDir": "${workspaceFolder}/build/release",
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Release",
+          "CMAKE_EXPORT_COMPILE_COMMANDS": "YES"
+        }
+      }
+    ],
+    "buildPresets": [
+      {
+        "name": "Debug",
+        "configurePreset": "Debug"
+      },
+      {
+        "name": "Release",
+        "configurePreset": "Release"
+      }
+    ],
+    "testPresets": [
+      {
+        "name": "Debug",
+        "configurePreset": "Debug",
+        "execution": {
+          "noTestsAction": "error",
+          "scheduleRandom": true,
+          "stopOnFailure": false,
+          "timeout": 60
+        }
+      },
+      {
+        "name": "Release",
+        "configurePreset": "Release",
+        "execution": {
+          "noTestsAction": "error",
+          "scheduleRandom": true,
+          "stopOnFailure": false,
+          "timeout": 60
+        }
+      }
+    ]
+  }
