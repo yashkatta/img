@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 static void error_callback(int error, const char *description)
@@ -25,9 +26,9 @@ int main()
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 
-	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	window = glfwCreateWindow(640, 480, "Test", NULL, NULL);
 	glfwMakeContextCurrent(window);
@@ -37,16 +38,23 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
+	if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cout << "Failed to initilize GLAD" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
 	glfwSetKeyCallback(window, key_callback);
+
+	glClearColor(0.22f, 0.83f, 0.86f, 0.0f);
 
 	while (!glfwWindowShouldClose(window))
 	{
-		// int width, height;
-		// glfwGetFramebufferSize(window, &width, &height);
-		// const float ratio = width / (float)height;
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+		const float ratio = width / (float)height;
 
-		// glViewport(0, 0, width, height);
-		// glClear(GL_COLOR_BUFFER_BIT);
+		glViewport(0, 0, width, height);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
