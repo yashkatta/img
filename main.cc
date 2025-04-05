@@ -7,14 +7,15 @@
 typedef struct vertex
 {
 	float v[3];
+	float t[2];
 } vertex;
 
 /* Global & Static */
 static const vertex vertices[4] = {
-		{0.5f, 0.5f, 0.0f},
-		{0.5f, -0.5f, 0.0f},
-		{-0.5f, -0.5f, 0.0f},
-		{-0.5f, 0.5f, 0.0f}};
+		{ {0.5f, 0.5f, 0.0f}, {1.0f, 1.0f}, },
+		{ {0.5f, -0.5f, 0.0f}, {1.0f, 0.0f}, },
+		{ {-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f}, },
+		{ {-0.5f, 0.5f, 0.0f}, {0.0f, 1.0f} }};
 
 static const int indices[] = {
 		0, 1, 3, // First triangle
@@ -26,24 +27,30 @@ static bool wireframe = false;
 static const char *vertex_shader_text =
 		"#version 420\n"
 		"layout (location = 0) in vec3 aPos;\n"
+		"layout (location = 1) in vec2 aTexCoord;\n"
 		"out vec3 color;\n"
+		"out vec2 texCoord;\n"
 		"\n"
 		"\n"
 		"void main()\n"
 		"{\n"
 		"    gl_Position = vec4(aPos, 1.0);\n"
 		"    color = vec3(0.8, 0.2, 0.0);\n"
+		"    texCoord = aTexCoord;\n"
 		"}\n";
 
 static const char *fragment_shader_text =
 		"#version 420\n"
 		"in vec3 color;\n"
+		"in vec2 texCoord;\n"
 		"out vec4 oFragment;\n"
 		"\n"
+		"uniform sampler2D tex1;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
-		"    oFragment = vec4(color, 1.0);\n"
+		"    oFragment = texture(tex1, texCoord);\n"
+		"    //oFragment = vec4(color, 1.0);\n"
 		"}\n";
 
 static void error_callback(int error, const char *description)
@@ -149,10 +156,30 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	std::cout << sizeof(indices) << std::endl;
+	std::cout << sizeof(vertex) << " " << offsetof(vertex,v)<< std::endl;
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void *)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void *)offsetof(vertex, v));
 	glEnableVertexAttribArray(0);
+
+	// Texture coord attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void *)offsetof(vertex, t));
+	glEnableVertexAttribArray(1);
+
+	// Textures
+	uint32_t textureColor = 0xFF00FF00;
+	unsigned int tex1;
+	glGenTextures(1, &tex1);
+	glBindTexture(GL_TEXTURE_2D, tex1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER, GL_MIRRORED_REPEAT, GL_REPEAT, GL_MIRROR_CLAMP_TO_EDGE
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // GL_NEAREST, GL_LINEAR, GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // GL_NEAREST, GL_LINEAR
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &textureColor);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glUseProgram(program);
+	glUniform1i(glGetUniformLocation(program, "tex1"), 0);
 
 	glClearColor(0.2f, 0.4f, 0.86f, 0.0f);
 
@@ -169,6 +196,9 @@ int main()
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		else
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex1);
 
 		glUseProgram(program);
 		glBindVertexArray(VAO);
